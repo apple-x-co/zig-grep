@@ -12,6 +12,7 @@ pub fn build(b: *std.build.Builder) void {
     const mode = b.standardReleaseOptions();
 
     const exe = b.addExecutable("zig-grep", "src/main.zig");
+    exe.addPackagePath("regex", "vendor/tiehuis/zig-regex/src/regex.zig");
     exe.setTarget(target);
     exe.setBuildMode(mode);
     exe.install();
