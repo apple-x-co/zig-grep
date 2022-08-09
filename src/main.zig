@@ -4,7 +4,7 @@ const Regex = @import("regex").Regex;
 pub fn main() anyerror!void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
-    defer std.debug.assert(!gpa.deinit());
+    defer _ = gpa.deinit();
 
     var iter = try std.process.argsWithAllocator(allocator);
     defer iter.deinit();
@@ -12,7 +12,8 @@ pub fn main() anyerror!void {
     const prog = iter.nextPosix().?;
     const pattern = iter.nextPosix() orelse {
         std.log.err("usage: {s} \"[pattern]\"", .{prog});
-        std.os.exit(1);
+
+        return error.InvalidArgs;
     };
 
     // std.debug.print("prog: {s}\n", .{prog});
@@ -32,7 +33,7 @@ pub fn main() anyerror!void {
         return;
     }
 
-    while (true): (arg = iter.nextPosix()) {
+    while (true) : (arg = iter.nextPosix()) {
         if (arg == null) {
             break;
         }
@@ -53,14 +54,14 @@ fn grep(in: std.fs.File, out: std.fs.File, regex: *Regex) anyerror!void {
 
     var buf: [std.mem.page_size]u8 = undefined;
     var i: u32 = 1;
-    while (true): (i += 1) {
+    while (true) : (i += 1) {
         var line = reader.readUntilDelimiterOrEof(buf[0..buf.len], '\n') catch null;
         if (line == null) {
             break;
         }
 
         if (try regex.partialMatch(line.?)) {
-            try writer.print("{}:{s}\n", .{i, line.?});
+            try writer.print("{}:{s}\n", .{ i, line.? });
         }
     } else |err| {
         std.log.warn("{}", .{err});
