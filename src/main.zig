@@ -6,11 +6,11 @@ pub fn main() anyerror!void {
     const allocator = gpa.allocator();
     defer _ = gpa.deinit();
 
-    var iter = try std.process.argsWithAllocator(allocator);
-    defer iter.deinit();
+    var args = try std.process.argsWithAllocator(allocator);
+    defer args.deinit();
 
-    const prog = iter.nextPosix().?;
-    const pattern = iter.nextPosix() orelse {
+    const prog = args.nextPosix().?;
+    const pattern = args.nextPosix() orelse {
         std.log.err("usage: {s} \"[pattern]\"", .{prog});
 
         return error.InvalidArgs;
@@ -23,7 +23,7 @@ pub fn main() anyerror!void {
 
     var regex = try Regex.compile(allocator, pattern);
 
-    var arg = iter.nextPosix();
+    var arg = args.nextPosix();
     if (arg == null) {
         const stdin = std.io.getStdIn();
         grep(stdin, stdout, &regex) catch |err| {
@@ -33,7 +33,7 @@ pub fn main() anyerror!void {
         return;
     }
 
-    while (true) : (arg = iter.nextPosix()) {
+    while (true) : (arg = args.nextPosix()) {
         if (arg == null) {
             break;
         }
