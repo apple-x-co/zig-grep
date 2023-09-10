@@ -9,7 +9,7 @@ git clone https://github.com/tiehuis/zig-regex vendor/tiehuis/zig-regex
 ## Build
 
 ```bash
-zig build -Drelease-fast
+zig build -Doptimize=ReleaseFast
 ```
 
 ## Run
