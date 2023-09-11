@@ -9,11 +9,11 @@ pub fn main() anyerror!void {
     var args = try std.process.argsWithAllocator(allocator);
     defer args.deinit();
 
-    const prog = args.nextPosix().?;
-    const pattern = args.nextPosix() orelse {
-        std.log.err("usage: {s} \"[pattern]\"", .{prog});
+    const prog = args.next().?;
+    const pattern = args.next() orelse {
+        std.log.err("usage: {s} \"[pattern]\" \"[file_path]\"", .{prog});
 
-        return error.InvalidArgs;
+        return error.InvalidArgument;
     };
 
     // std.debug.print("prog: {s}\n", .{prog});
@@ -23,7 +23,7 @@ pub fn main() anyerror!void {
 
     var regex = try Regex.compile(allocator, pattern);
 
-    var arg = args.nextPosix();
+    var arg = args.next();
     if (arg == null) {
         const stdin = std.io.getStdIn();
         grep(stdin, stdout, &regex) catch |err| {
@@ -33,14 +33,14 @@ pub fn main() anyerror!void {
         return;
     }
 
-    while (true) : (arg = args.nextPosix()) {
+    while (true) : (arg = args.next()) {
         if (arg == null) {
             break;
         }
 
         // std.debug.print("{s}\n", .{arg.?});
 
-        const file = try std.fs.cwd().openFile(arg.?, .{ .read = true, .write = false });
+        const file = try std.fs.cwd().openFile(arg.?, .{ .mode = .read_only });
         defer file.close();
         grep(file, stdout, &regex) catch |err| {
             std.log.warn("error reading file '{s}': {}", .{ arg.?, err });
@@ -63,7 +63,5 @@ fn grep(in: std.fs.File, out: std.fs.File, regex: *Regex) anyerror!void {
         if (try regex.partialMatch(line.?)) {
             try writer.print("{}:{s}\n", .{ i, line.? });
         }
-    } else |err| {
-        std.log.warn("{}", .{err});
     }
 }

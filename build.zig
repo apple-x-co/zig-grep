@@ -51,7 +51,7 @@ pub fn build(b: *std.Build) void {
     // set a preferred release mode, allowing the user to decide how to optimize.
     const optimize = b.standardOptimizeOption(.{});
 
-    const regex = b.createModule(.{ .source_file = std.Build.LazyPath{ .path = "vendor/tiehuis/zig-regex/src/regex.zig" } });
+    // const regex = b.createModule(.{ .source_file = std.Build.LazyPath{ .path = "vendor/tiehuis/zig-regex/src/regex.zig" } });
 
     const exe = b.addExecutable(.{
         .name = "zig-grep",
@@ -61,7 +61,10 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-    exe.addModule("regex", regex);
+    // exe.addModule("regex", regex);
+
+    const regex = b.dependency("regex", .{});
+    exe.addModule("regex", regex.module("regex"));
 
     // This declares intent for the executable to be installed into the
     // standard location when the user invokes the "install" step (the default
